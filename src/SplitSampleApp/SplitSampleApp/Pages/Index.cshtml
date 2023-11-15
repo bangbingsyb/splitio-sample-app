@@ -1,0 +1,43 @@
+﻿
+@page
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+@model SplitSampleApp.Pages.IndexModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <style type="text/css">
+        body
+        {
+            font-family: Arial;
+            font-size: 10pt;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="PhotoName">Epic wildflowers at Mountain Rainier</h1>
+    <p>User ID: @Model.UserId</p>
+    <img src="@Model.ImageUrl" alt="Cover photo" height="@Model.ImageHeight"/>
+    <h2>@Model.SurveyIntro</h2>
+    <form method="post">
+        <table>
+            <tr>
+                <td>Score: </td>
+                <td><input type="number" id="Score" name="Score" min="1" max="5"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="submit" value="Submit" asp-page-handler="Submit" /></td>
+            </tr>
+        </table>
+        <hr />
+        <input type="hidden" id="UserId" name="UserId" value="@Model.UserId" />
+    </form>
+</body>
+</html>
