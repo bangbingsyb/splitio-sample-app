@@ -137,7 +137,11 @@ The sample web app sents an [event](https://help.split.io/hc/en-us/articles/3600
 
 Two metrics are created to evaluation the impact of the feature flags
 
+The metric `survey_score` evaluates the average score per user with the desired impact as `increase`.
+
 ![survey score metric definition](images/metrics_survey_score.png)
+
+The metric `survey_participation` evaluates the count of the events (the number of survey participations) per user with the desired impact also as `increase`.
 
 ![survey participation metric definition](images/metrics_survey_participation.png)
 
