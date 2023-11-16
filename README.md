@@ -67,7 +67,7 @@ The sample web app uses Split [.NET server-side SDK](https://help.split.io/hc/en
 
 From `Admin settings`, copy the server-side SDK API key corresponding to the same environment where the feature flags are created.
 
-![Server-side SDK API key](images/server_side_api_key.png)
+![server-side SDK API key](images/server_side_api_key.png)
 
 Save the API key in a secret file under the path `%APPDATA%\Microsoft\UserSecrets\a3e3f50b-3bee-4110-b6a5-d57e5ff7c17c\secrets.json` with the following format:
 
@@ -78,7 +78,62 @@ Save the API key in a secret file under the path `%APPDATA%\Microsoft\UserSecret
 ```
 Run the solution to launch both the sample web app and the test program that mocks users and sends traffic to the sample web app. The impressions and events start to be sent to Split from the app.
 
-The app sents an event to Split for each survey participation. Each event includes `eventTypeId` as `image_rating`, `key` as the user ID, `value` as the score the user rates the web page, `timestamp` and other required metadata to attribute it to impressions.
+### Test logic
+
+The test program runs in a loop. In each iteration, it mocks a user visiting the sample web app and optionally participating the survey of the app by rating the page with a score from 1-5.
+
+An iteration starts with GET the main page of the sample app and parses the returned HTML. The parsed survey introduction and cover photo determines the next step of the mock use:
+
+1. If the survey introduction is the `on` treatment of the feature `survey_incentive` ("with the chance to win $1000"), the mock user will always (100% chance) participate the survey. Otherwise (`off` treatment of `survey_incentive`) the mock user will have 50% chance to participate the survey.
+2. If the mock user decides to participate the survey, he will rate the page based on the cover photo. If the cover photo is the `on` treatment of the feature `new_cover_photo`, the mock user will give a score between 3-5 randomly. Otherwise (`off` treatment of `new_cover_photo`) the mocker user will give a score between 1-3 randomly.
+3. The photo size determined by the feature `large_cover_photo` does not impact the survey participation or score.
+
+### Impressions
+
+The sample web app sents an [impression](https://help.split.io/hc/en-us/articles/360020585192-Impressions) to Split for feature treatment evaluation. Each impression includes `split` as the feature flag name, `key` as the user ID, `treatment` as resulted feature variance, `timestamp` and other required metadata. A sample impression is shown below.
+
+```
+{
+  "environmentId": "a26b5d00-6ec2-11ee-aebf-ee919197fded",
+  "environmentName": "Prod-Default",
+  "key": "user_73",
+  "label": "default rule",
+  "machineIp": "172.21.112.1",
+  "machineName": "DESKTOP-68UF13O",
+  "receptionTimestamp": 1700118643260,
+  "sdk": ".NET_CORE",
+  "sdkVersion": "7.6.0",
+  "split": "new_cover_photo",
+  "splitVersionNumber": 1699482602361,
+  "timestamp": 1700118359326,
+  "trafficTypeId": "a2619900-6ec2-11ee-aebf-ee919197fded",
+  "trafficTypeName": "user",
+  "treatment": "on"
+}
+```
+
+### Events
+
+The sample web app sents an [event](https://help.split.io/hc/en-us/articles/360020585772-Events) to Split for each survey participation. Each event includes `eventTypeId` as `image_rating`, `key` as the user ID, `value` as the score the user rates the web page, `timestamp` and other required metadata to attribute the event to impressions. A sample event is shown below.
+
+```
+{
+  "environmentId": "a26b5d00-6ec2-11ee-aebf-ee919197fded",
+  "environmentName": "Prod-Default",
+  "eventTypeId": "image_rating",
+  "key": "user_842",
+  "machineIp": "172.21.112.1",
+  "machineName": "DESKTOP-68UF13O",
+  "properties": {},
+  "receptionTimestamp": 1700117500557,
+  "sdk": ".NET_CORE",
+  "sdkVersion": "7.6.0",
+  "timestamp": 1700117499436,
+  "trafficTypeId": "a2619900-6ec2-11ee-aebf-ee919197fded",
+  "trafficTypeName": "user",
+  "value": 2
+}
+```
 
 ## Create metrics
 
@@ -88,6 +143,34 @@ Two metrics are created to evaluation the impact of the feature flags
 
 ![survey participation metric definition](images/metrics_survey_participation.png)
 
-## View experimentation results
+## Review experimentation results
 
-## Query impressions and events from Data Hub
+The impact of a feature flag on the metrics can be viewed from the `Metrics impact` tab of the feature flag.
+
+![metrics impact](images/metrics_impact.png)
+
+The feature flag `new_cover_photo` shows a desired impact of increasing `survey_score`, while its impact on `survey_participation` is inconclusive.
+
+![new_cover_photo metrics impact](images/metrics_summary_new_cover_photo.png)
+
+Note that `survey_score` is set as a key metric for the `new_cover_photo` feature, but all metrics are calculated for the feature flag regardless of being key metrics or not.
+
+In contrast, the feature flag `survey_incentive` shows a desired impact of increasing `survey_participation`, while its impact on `survey_score` is inconclusive.
+
+![survey_incentive metrics impact](images/metrics_summary_survey_incentive.png)
+
+Finally, the feature flag `large_cover_photo` shows inconclusive impact on both metrics `survey_score` and `survey_participation`.
+
+![large_cover_photo metrics impact](images/metrics_summary_large_cover_photo.png)
+
+## Query impressions and events from data hub
+
+Split's data hub supports querying the raw events and impressions.
+
+Events from the experimentation
+
+![data hub events](images/data_hub_events.png)
+
+Impressions from the experimentation
+
+![data hub impressions](images/data_hub_impressions.png)
