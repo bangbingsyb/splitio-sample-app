@@ -76,13 +76,11 @@ Save the API key in a secret file under the path `%APPDATA%\Microsoft\UserSecret
   "Splitio:ApiKey": "<Split_API_Key>"
 }
 ```
-Run the solution to launch both the sample web app and the test program that mocks users and sends traffic to the sample web app. The impressions and events start to be sent to Split from the app.
+Run the solution to launch both the sample web app and the test program. The test program mocks a group of users visiting the sample web app and optionally participating the survey of the app by rating the page with a score from 1-5. Impressions and events are then sent by the sample app to Split.
 
 ### Test logic
 
-The test program runs in a loop. In each iteration, it mocks a user visiting the sample web app and optionally participating the survey of the app by rating the page with a score from 1-5.
-
-An iteration starts with GET the main page of the sample app and parses the returned HTML. The parsed survey introduction and cover photo determines the next step of the mock use:
+The test program runs in a loop. Each iteration starts with GET the main page of the sample app and parses the returned HTML. The parsed survey introduction and cover photo determines the next step of the mock user:
 
 1. If the survey introduction is the `on` treatment of the feature `survey_incentive` ("with the chance to win $1000"), the mock user will always (100% chance) participate the survey. Otherwise (`off` treatment of `survey_incentive`) the mock user will have 50% chance to participate the survey.
 2. If the mock user decides to participate the survey, he will rate the page based on the cover photo. If the cover photo is the `on` treatment of the feature `new_cover_photo`, the mock user will give a score between 3-5 randomly. Otherwise (`off` treatment of `new_cover_photo`) the mocker user will give a score between 1-3 randomly.
@@ -90,7 +88,7 @@ An iteration starts with GET the main page of the sample app and parses the retu
 
 ### Impressions
 
-The sample web app sents an [impression](https://help.split.io/hc/en-us/articles/360020585192-Impressions) to Split for feature treatment evaluation. Each impression includes `split` as the feature flag name, `key` as the user ID, `treatment` as resulted feature variance, `timestamp` and other required metadata. A sample impression is shown below.
+The sample web app sents an [impression](https://help.split.io/hc/en-us/articles/360020585192-Impressions) to Split for every feature evaluation. Each impression includes `split` as the feature flag name, `key` as the user ID, `treatment` as the evaluated result of the feature flag, `timestamp` and other required metadata. A sample impression is shown below.
 
 ```
 {
